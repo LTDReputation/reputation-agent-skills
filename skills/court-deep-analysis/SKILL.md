@@ -9,11 +9,27 @@ description: >-
   401/403, run courts-setup first.
 user-invocable: true
 argument-hint: <тема анализа, напр. «как суды взыскивают неустойку по ДДУ»>
+version: 0.1.0
+requires:
+  env:
+    - REPUTATION_API_KEY
+primaryEnv: REPUTATION_API_KEY
 metadata:
   author: reputation
+  openclaw:
+    envVars:
+      - name: REPUTATION_API_KEY
+        required: true
+        description: >-
+          API key for the reputation.ru court service — a PAID third-party API.
+          Requires a reputation.ru account (get a key at
+          https://reputation.ru/account/api). Calls are billed per the service
+          tariff.
 ---
 
 # Court deep analysis (reputation.ru)
+
+> **Paid service.** Uses the reputation.ru court API — a paid third-party service that needs a reputation.ru account and API key (`REPUTATION_API_KEY`; get one at https://reputation.ru/account/api). Calls are billed per the service tariff. New here? Run **courts-setup** first.
 
 Deep research: one asynchronous job searches all three court systems, filters by
 relevance, and returns an analytical **report** (Markdown, with embedded case

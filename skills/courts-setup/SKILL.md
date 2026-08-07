@@ -6,11 +6,27 @@ description: >-
   or court-document report missing tools, or return 401/403/"unauthorized". Also
   bundles a dependency-free REST client (court_client.py) for agents without MCP.
 user-invocable: true
+version: 0.1.0
+requires:
+  env:
+    - REPUTATION_API_KEY
+primaryEnv: REPUTATION_API_KEY
 metadata:
   author: reputation
+  openclaw:
+    envVars:
+      - name: REPUTATION_API_KEY
+        required: true
+        description: >-
+          API key for the reputation.ru court service — a PAID third-party API.
+          Requires a reputation.ru account (get a key at
+          https://reputation.ru/account/api). Calls are billed per the service
+          tariff.
 ---
 
 # Court service setup (reputation.ru)
+
+> **Paid service.** reputation.ru is a paid court API — you need an account and API key, and calls are billed per the service tariff.
 
 Connect an agent to the reputation.ru court service. There are two ways in — the
 **MCP server** (preferred) or the **REST API** directly. Either way you need an

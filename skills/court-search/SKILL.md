@@ -9,11 +9,27 @@ description: >-
   tools are missing or you get 401/403, run courts-setup first.
 user-invocable: true
 argument-hint: <запрос на русском, напр. «взыскание процентов по ст. 395 ГК РФ»>
+version: 0.1.0
+requires:
+  env:
+    - REPUTATION_API_KEY
+primaryEnv: REPUTATION_API_KEY
 metadata:
   author: reputation
+  openclaw:
+    envVars:
+      - name: REPUTATION_API_KEY
+        required: true
+        description: >-
+          API key for the reputation.ru court service — a PAID third-party API.
+          Requires a reputation.ru account (get a key at
+          https://reputation.ru/account/api). Calls are billed per the service
+          tariff.
 ---
 
 # Court search (fast, reputation.ru)
+
+> **Paid service.** Uses the reputation.ru court API — a paid third-party service that needs a reputation.ru account and API key (`REPUTATION_API_KEY`; get one at https://reputation.ru/account/api). Calls are billed per the service tariff. New here? Run **courts-setup** first.
 
 Natural-language search over Russian court practice. One tool/endpoint per court
 system — **route by the nature of the dispute**, then pass the user's question

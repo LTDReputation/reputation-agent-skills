@@ -8,11 +8,27 @@ description: >-
   401/403, run courts-setup first.
 user-invocable: true
 argument-hint: <document id from search results>
+version: 0.1.0
+requires:
+  env:
+    - REPUTATION_API_KEY
+primaryEnv: REPUTATION_API_KEY
 metadata:
   author: reputation
+  openclaw:
+    envVars:
+      - name: REPUTATION_API_KEY
+        required: true
+        description: >-
+          API key for the reputation.ru court service — a PAID third-party API.
+          Requires a reputation.ru account (get a key at
+          https://reputation.ru/account/api). Calls are billed per the service
+          tariff.
 ---
 
 # Court document text (reputation.ru)
+
+> **Paid service.** Uses the reputation.ru court API — a paid third-party service that needs a reputation.ru account and API key (`REPUTATION_API_KEY`; get one at https://reputation.ru/account/api). Calls are billed per the service tariff. New here? Run **courts-setup** first.
 
 Retrieve the full plain text of a specific case document. You need an id from a
 prior **court-search** result — this skill does not search for cases.
