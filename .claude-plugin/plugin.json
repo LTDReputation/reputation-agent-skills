@@ -1,0 +1,24 @@
+{
+  "name": "courts",
+  "version": "0.1.0",
+  "description": "reputation.ru court practice for Claude Code: fast case search, deep analysis, and document-text retrieval across Russian arbitration (арбитраж), general-jurisdiction (СОЮ), and Supreme Court (ВС РФ) cases. MCP + REST.",
+  "author": {
+    "name": "Reputation",
+    "email": "support@reputation.ru"
+  },
+  "homepage": "https://reputation.ru",
+  "repository": "https://github.com/LTDReputation/reputation-agent-skills",
+  "license": "MIT",
+  "keywords": [
+    "court-search",
+    "legal-research",
+    "russian-courts",
+    "судебная-практика",
+    "arbitration",
+    "mcp",
+    "reputation",
+    "ai-tools"
+  ],
+  "skills": "./skills",
+  "mcpServers": "./.mcp.json"
+}

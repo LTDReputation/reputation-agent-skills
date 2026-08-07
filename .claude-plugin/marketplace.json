@@ -1,0 +1,47 @@
+{
+  "name": "reputation-agent-skills",
+  "owner": {
+    "name": "Reputation",
+    "email": "support@reputation.ru",
+    "url": "https://reputation.ru"
+  },
+  "metadata": {
+    "description": "Agent skills for the reputation.ru court service — search and analyze Russian court practice (arbitration, general jurisdiction, Supreme Court) via MCP or REST.",
+    "version": "0.1.0",
+    "pluginRoot": "./"
+  },
+  "plugins": [
+    {
+      "name": "courts",
+      "description": "reputation.ru court practice for coding agents: fast case search, asynchronous deep analysis, and document-text retrieval across Russian arbitration (арбитраж), general-jurisdiction (СОЮ), and Supreme Court (ВС РФ) cases — powered by the reputation MCP server with a REST fallback.",
+      "version": "0.1.0",
+      "source": "./",
+      "author": {
+        "name": "Reputation",
+        "email": "support@reputation.ru"
+      },
+      "homepage": "https://reputation.ru",
+      "repository": "https://github.com/LTDReputation/reputation-agent-skills",
+      "license": "MIT",
+      "keywords": [
+        "court-search",
+        "legal-research",
+        "russian-courts",
+        "судебная-практика",
+        "arbitration",
+        "reputation",
+        "mcp",
+        "ai-tools"
+      ],
+      "category": "External integrations",
+      "tags": [
+        "search",
+        "legal",
+        "research",
+        "courts",
+        "documents",
+        "mcp"
+      ]
+    }
+  ]
+}

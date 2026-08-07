@@ -1,0 +1,43 @@
+{
+  "name": "courts",
+  "version": "0.1.0",
+  "description": "reputation.ru court practice integration. Fast case search, asynchronous deep analysis, and document-text retrieval across Russian arbitration, general-jurisdiction, and Supreme Court cases.",
+  "author": {
+    "name": "Reputation",
+    "email": "support@reputation.ru",
+    "url": "https://reputation.ru"
+  },
+  "homepage": "https://reputation.ru",
+  "repository": "https://github.com/LTDReputation/reputation-agent-skills",
+  "license": "MIT",
+  "keywords": [
+    "court-search",
+    "legal-research",
+    "russian-courts",
+    "судебная-практика",
+    "arbitration",
+    "mcp",
+    "reputation",
+    "ai-tools"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Reputation Courts",
+    "shortDescription": "Search and analyze Russian court practice (arbitration, general jurisdiction, Supreme Court)",
+    "longDescription": "Court-practice research for coding agents, powered by reputation.ru. Fast natural-language case search across arbitration (арбитраж), general-jurisdiction (СОЮ), and Supreme Court (ВС РФ); asynchronous deep-research reports synthesizing practice across all systems; and full document-text retrieval by id. Works through the reputation MCP server, with a zero-dependency REST client as a fallback.",
+    "developerName": "Reputation",
+    "category": "Productivity",
+    "capabilities": [
+      "Read",
+      "Write"
+    ],
+    "websiteURL": "https://reputation.ru",
+    "defaultPrompt": [
+      "Найди судебную практику по взысканию неустойки по ДДУ",
+      "Как суды решают споры о банкротстве ООО по заявлению кредитора",
+      "Найди арбитражные дела с ФНС по налоговым доначислениям",
+      "Покажи позицию Верховного Суда по применению статьи 333 ГК РФ",
+      "Получи полный текст решения по делу из результатов поиска"
+    ]
+  }
+}
