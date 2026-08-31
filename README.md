@@ -5,22 +5,24 @@ service — search and analyze Russian court practice (судебная прак
 any skills-compatible AI agent (Claude / Claude Code, Cursor, Gemini CLI,
 OpenCode, Goose, Codex, and others).
 
-Each skill is a self-contained folder with a `SKILL.md`. Agents load only the
-name and description until a task matches, then read the full instructions —
-so many skills cost little context.
+The skill is a self-contained folder with a `SKILL.md`. Agents load only its name
+and description until a task matches, then read the full instructions — so it costs
+little context until actually used.
 
-## Skills
+## Skill
 
-| Skill | Use it for |
+A single skill, [`court-practice`](skills/court-practice/), covering the whole court
+service:
+
+| Capability | Use it for |
 |---|---|
-| [`court-search`](skills/court-search/) | **Default.** Find relevant court cases (арбитраж / СОЮ / ВС РФ) by a legal question — fast, seconds. |
-| [`court-deep-analysis`](skills/court-deep-analysis/) | A synthesized analytical report across practice («сложившаяся практика по…»). Asynchronous, ~30–120s. |
-| [`court-document`](skills/court-document/) | Fetch the full text of a specific case document (by `FileId`/`DocId` from search). |
-| [`courts-setup`](skills/courts-setup/) | Connect the service — MCP server or REST API key. Run first. Bundles a zero-dependency REST client. |
+| **Search** | **Default.** Find relevant court cases (арбитраж / СОЮ / ВС РФ) by a legal question — fast, seconds. |
+| **Deep analysis** | A synthesized analytical report across practice («сложившаяся практика по…»). Asynchronous, ~30–120s. |
+| **Document text** | Fetch the full text of a specific case document (by `FileId`/`DocId` from search). |
+| **Setup** | Connect the service — MCP server or REST API key. Do first. Bundles a zero-dependency REST client. |
 
-The skills are built around the reputation **MCP server** (the tool layer); when
-MCP isn't connected they fall back to the **REST API** via the bundled
-`court_client.py`.
+The skill is built around the reputation **MCP server** (the tool layer); when MCP
+isn't connected it falls back to the **REST API** via the bundled `court_client.py`.
 
 ## Requirements
 
@@ -31,9 +33,9 @@ MCP isn't connected they fall back to the **REST API** via the bundled
 ## Install
 
 **As a Claude Code plugin (recommended).** This repo is a Claude Code plugin
-marketplace. Add it, then install the `courts` plugin — you get the four skills
-as slash commands (`/courts:court-search`, `/courts:court-deep-analysis`, …) and
-the reputation MCP server auto-wired from [`.mcp.json`](.mcp.json):
+marketplace. Add it, then install the `courts` plugin — you get the skill as a
+slash command (`/courts:court-practice`) and the reputation MCP server auto-wired
+from [`.mcp.json`](.mcp.json):
 
 ```
 /plugin marketplace add LTDReputation/reputation-agent-skills
@@ -47,10 +49,10 @@ export REPUTATION_API_KEY=<your-api-key>   # from https://reputation.ru/account/
 ```
 
 **As a Codex plugin.** A Codex manifest is provided at
-[`.codex-plugin/plugin.json`](.codex-plugin/plugin.json) (same skills) — install
+[`.codex-plugin/plugin.json`](.codex-plugin/plugin.json) (same skill) — install
 via the Codex skill installer pointing at this repo.
 
-**Manual (any skills-compatible agent).** Copy the skill folders into your
+**Manual (any skills-compatible agent).** Copy the skill folder into your
 agent's skills directory:
 
 ```bash
@@ -58,9 +60,9 @@ mkdir -p .claude/skills
 cp -r skills/* .claude/skills/
 ```
 
-Either way, run **`courts-setup`** first to connect the MCP server (or set an API
-key), then use `court-search` for everyday lookups. The `SKILL.md` format is the
-same across runtimes — consult your agent's docs for its exact skills path.
+The skill's **Setup** section connects the MCP server (or sets an API key); do that
+first, then use it for everyday lookups. The `SKILL.md` format is the same across
+runtimes — consult your agent's docs for its exact skills path.
 
 ## Layout
 
@@ -72,16 +74,13 @@ agent-skills/
 ├── .codex-plugin/plugin.json     # Codex plugin manifest
 ├── .mcp.json                     # bundled reputation MCP server (key via ${REPUTATION_API_KEY})
 └── skills/
-    ├── court-search/SKILL.md
-    ├── court-deep-analysis/SKILL.md
-    ├── court-document/SKILL.md
-    └── courts-setup/
+    └── court-practice/
         ├── SKILL.md
         └── scripts/court_client.py   # zero-dependency REST client + SOD polling
 ```
 
 ## Contributing
 
-Keep each `SKILL.md` focused and short; put endpoints, tool names, and routing in
-the skill that owns them. Descriptions must say **when** to use a skill (and when
-to use a sibling instead) — that's what the agent matches on.
+Keep `SKILL.md` focused; the description must say **when** to use the skill — that's
+what the agent matches on. Put endpoints, tool names, and routing in the section that
+owns them (Search / Deep analysis / Document text / Setup).

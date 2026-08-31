@@ -25,13 +25,13 @@ API_KEY = os.environ.get("REPUTATION_API_KEY", "")
 
 SEARCH_ENDPOINTS = {
     "arbitr": "/api/v2/arbitr/ai-search",
-    "general": "/api/v2/general-jurisdiction-courts/ai-search",
+    "general": "/api/v3/general-jurisdiction-courts/ai-search",
     "vsrf": "/api/v1/vsrf/ai-search",
 }
 # (endpoint, id query-param name)
 DOCUMENT_ENDPOINTS = {
     "arbitr": ("/api/v1/arbitr/document/text", "docId"),
-    "general": ("/api/v2/general-jurisdiction-courts/documents/text", "id"),
+    "general": ("/api/v3/general-jurisdiction-courts/documents/text", "id"),
 }
 ANALYSIS = {
     "request": "/api/v1/ai-analysis/request",
