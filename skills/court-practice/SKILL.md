@@ -47,16 +47,56 @@ returns `401`/`403`, do **Setup** first.
 
 Needed once — skip if the reputation MCP tools already work.
 
-### 1. Get an API key
+There are two ways to authorize. Pick by what the client supports and whether a human
+is available right now:
 
-Create one at https://reputation.ru/account/api ("Создать API ключ"). It goes in an
-`Authorization` header on every request.
+| | Use when | Who authorizes |
+|---|---|---|
+| **Account sign-in (OAuth)** | the client supports OAuth for MCP **and** a person is at the keyboard | the user, in a browser |
+| **API key** | any client, headless runs, REST, CI | you, with a key the user supplies |
 
-### 2a. Connect via MCP (preferred)
+MCP config lives in `.claude/mcp.json`, `~/.cursor/mcp.json`, the Claude Desktop
+config, or your runtime's equivalent. Restart the client after editing it.
 
-Add the reputation MCP server to your agent's MCP config (`.claude/mcp.json`,
-`~/.cursor/mcp.json`, Claude Desktop config, or your runtime's equivalent), then
-restart the client:
+### 1a. MCP with account sign-in (OAuth)
+
+Point the client at the server with **no headers at all**:
+
+```json
+{
+  "mcpServers": {
+    "reputation-court-search": {
+      "url": "https://api.reputation.ru/mcp"
+    }
+  }
+}
+```
+
+On the first call the client receives `401` with a `WWW-Authenticate` header naming the
+protected-resource metadata, discovers the authorization server (`https://reputation.ru`),
+registers itself, and opens a browser so the user can sign in and approve access. After
+that the client stores and refreshes the token on its own — no key is ever handled by you.
+
+**You cannot complete this flow yourself.** It needs a person in a browser. If you are
+running non-interactively, stop and say so: ask the user to authorize the server in their
+client (Claude Code: `/mcp`; Cursor: MCP settings), then retry. **Never ask the user to
+paste an authorization code, access token, or callback URL to you**, and never try to
+drive the consent page yourself.
+
+**Do not add `headers.Authorization` to an OAuth config.** Most clients skip the sign-in
+flow entirely when a static `Authorization` header is present and send its value as an API
+key instead — the symptom is an auth error with no sign-in ever offered.
+
+The name the client registers under is what the user sees at
+https://reputation.ru/account/api under "Подключённые AI-ассистенты", where they can
+revoke access.
+
+If the client has no OAuth support for MCP, use an API key instead.
+
+### 1b. MCP with an API key
+
+The user creates a key at https://reputation.ru/account/api ("Создать API ключ") and gives
+it to you. Send it in an `Authorization` header:
 
 ```json
 {
@@ -69,11 +109,16 @@ restart the client:
 }
 ```
 
-This exposes: `search_arbitration_cases`, `search_general_court_cases`,
+Either way the MCP server exposes: `search_arbitration_cases`, `search_general_court_cases`,
 `search_vsrf_documents`, `deep_research_request` / `deep_research_status` /
 `deep_research_result`, `get_general_court_document`, `get_arbitration_document`.
 
-### 2b. Use the REST API (no MCP)
+Billing is the same for both: requests are charged to the user's account per the service
+tariff.
+
+### 2. Use the REST API (no MCP)
+
+Authorize with an API key — account sign-in applies to the MCP endpoint.
 
 Base URL `https://api.reputation.ru`; send `Authorization: <api-key>` on every call.
 A ready client that handles requests, JSON, and the async analysis polling loop is
@@ -214,7 +259,17 @@ the document has **no indexed text** — tell the user; don't fabricate content.
 ## Troubleshooting
 
 - `401` — missing/invalid API key. Check the `Authorization` header / `REPUTATION_API_KEY`.
-- `403` — the key lacks access to that endpoint.
+- `401` **carrying a `WWW-Authenticate: Bearer … resource_metadata=…` header** — the server
+  is asking for account sign-in and the client isn't authorized yet. Have the user sign in
+  (**1a**) or configure an API key (**1b**). Don't retry the call unchanged.
+- `invalid_token` — the access token expired or was revoked. The user must sign in again;
+  you cannot refresh it for them.
+- `insufficient_scope` — the token is missing the `mcp` scope. Re-authorize; if it repeats,
+  fall back to an API key.
+- The client never offers sign-in — a static `Authorization` header is configured, which
+  disables the OAuth flow. Remove the `headers` block (see **1a**).
+- `403` — the key lacks access to that endpoint. If requests go through a proxy, check that
+  it isn't the proxy returning this: try the same call bypassing it (`NO_PROXY`).
 - `429` — rate limit; back off and retry.
 - `400` on document text — missing id param.
 - MCP tools not appearing — re-check the config path and restart the client; some
