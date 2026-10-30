@@ -5,8 +5,14 @@ Minimal, dependency-free client for the reputation.ru court API.
 For agents that can run code but don't have the reputation MCP connected. Uses
 only the Python standard library.
 
-Auth: set REPUTATION_API_KEY (get a key at https://reputation.ru/account/api).
+Auth (either one):
+  - REPUTATION_API_KEY     — an API key (sent as `Authorization: <key>`).
+                             Get one at https://reputation.ru/account/api.
+  - REPUTATION_ACCESS_TOKEN — an OAuth access token (sent as `Authorization: Bearer <token>`).
+                             Takes precedence over the key when both are set.
 Base URL overridable via REPUTATION_BASE_URL (default https://api.reputation.ru).
+HTTP timeout overridable via REPUTATION_HTTP_TIMEOUT seconds (default 90; keep it
+>= 60 — ai-search is AI-backed and routinely takes 30-60+ seconds).
 
 CLI:
     python court_client.py search {arbitr|general|vsrf} "запрос на русском"
@@ -22,6 +28,9 @@ import urllib.request
 
 BASE_URL = os.environ.get("REPUTATION_BASE_URL", "https://api.reputation.ru").rstrip("/")
 API_KEY = os.environ.get("REPUTATION_API_KEY", "")
+ACCESS_TOKEN = os.environ.get("REPUTATION_ACCESS_TOKEN", "")
+# ai-search is AI-backed and routinely takes 30-60+s; a short timeout kills a live request.
+HTTP_TIMEOUT = float(os.environ.get("REPUTATION_HTTP_TIMEOUT", "90"))
 
 SEARCH_ENDPOINTS = {
     "arbitr": "/api/v2/arbitr/ai-search",
@@ -44,13 +53,20 @@ class CourtApiError(Exception):
     pass
 
 
-def _request(method, path, *, params=None, body=None, expect="json", timeout=60):
-    if not API_KEY:
-        raise CourtApiError("REPUTATION_API_KEY is not set")
+def _auth_header():
+    """OAuth access token (as Bearer) if present, otherwise the raw API key."""
+    if ACCESS_TOKEN:
+        return "Bearer " + ACCESS_TOKEN
+    return API_KEY
+
+
+def _request(method, path, *, params=None, body=None, expect="json", timeout=HTTP_TIMEOUT):
+    if not (API_KEY or ACCESS_TOKEN):
+        raise CourtApiError("set REPUTATION_API_KEY (or REPUTATION_ACCESS_TOKEN for an OAuth token)")
     url = BASE_URL + path
     if params:
         url += "?" + urllib.parse.urlencode(params)
-    headers = {"Authorization": API_KEY}
+    headers = {"Authorization": _auth_header()}
     data = None
     if body is not None:
         data = json.dumps(body).encode("utf-8")

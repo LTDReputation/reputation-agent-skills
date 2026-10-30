@@ -5,25 +5,24 @@ description: >-
   get a synthesized analysis report, or fetch a document's full text across
   arbitration (арбитраж), general jurisdiction (СОЮ), and the Supreme Court
   (ВС РФ). Use for «найди практику по…», «как суды решают…», «обзор практики»,
-  «полный текст решения». Paid service — needs REPUTATION_API_KEY; if tools are
-  missing or you get 401/403, do the Setup section first.
+  «полный текст решения». Paid service — authorize via MCP account sign-in (OAuth)
+  or a REPUTATION_API_KEY; if tools are missing or you get 401/403, do the Setup
+  section first.
 user-invocable: true
 argument-hint: <вопрос на русском, напр. «взыскание неустойки по ДДУ»>
-version: 0.1.0
-requires:
-  env:
-    - REPUTATION_API_KEY
+version: 0.2.0
 primaryEnv: REPUTATION_API_KEY
 metadata:
   author: reputation
   openclaw:
     envVars:
       - name: REPUTATION_API_KEY
-        required: true
+        required: false
         description: >-
           API key for the reputation.ru court service — a PAID third-party API.
-          Requires a reputation.ru account (get a key at
-          https://reputation.ru/account/api). Calls are billed per the service
+          Optional: NOT needed when the client signs in via MCP account OAuth
+          (see Setup 1a). Provide a key for headless/REST/CI use — get one at
+          https://reputation.ru/account/api. Calls are billed per the service
           tariff.
 ---
 
@@ -43,20 +42,90 @@ returns `401`/`403`, do **Setup** first.
 
 ---
 
+## Timing — these calls are AI-backed and slow
+
+The pipelines run live AI, so a slow response is the normal case, not a failure. Budget
+for it and set generous client timeouts:
+
+| Call | Typical time | Client timeout |
+|---|---|---|
+| **Search** | 10–45s | **≥ 60s** |
+| **Deep analysis** | 30–240s | async — start then poll, never one blocking call |
+| **Document text** | seconds | 30s is fine |
+
+- **Do not apply a generic "no response in 10–15s → give up" rule.** That rule is for web
+  pages; here it kills live-but-slow requests. Wait for the full budget.
+- **Run long calls detached**, and read the result from a file — so a dropped pipe or an
+  abandoned turn can't kill the request mid-flight:
+
+  ```bash
+  nohup setsid python scripts/court_client.py search general "<query>" > /tmp/court.json 2>&1 &
+  # then wait and read /tmp/court.json
+  ```
+
+- An **empty result that took ~45s** is almost always a timeout, not "nothing found" —
+  raise the timeout and retry before telling the user there's no practice.
+
+---
+
 ## Setup
 
 Needed once — skip if the reputation MCP tools already work.
 
-### 1. Get an API key
+There are two ways to authorize. Pick by what the client supports and whether a human
+is available right now:
 
-Create one at https://reputation.ru/account/api ("Создать API ключ"). It goes in an
-`Authorization` header on every request.
+| | Use when | Who authorizes |
+|---|---|---|
+| **Account sign-in (OAuth)** | the client supports OAuth for MCP **and** a person is at the keyboard | the user, in a browser |
+| **API key** | any client, headless runs, REST, CI | you, with a key the user supplies |
 
-### 2a. Connect via MCP (preferred)
+MCP config lives in `.claude/mcp.json`, `~/.cursor/mcp.json`, the Claude Desktop
+config, or your runtime's equivalent. Restart the client after editing it.
 
-Add the reputation MCP server to your agent's MCP config (`.claude/mcp.json`,
-`~/.cursor/mcp.json`, Claude Desktop config, or your runtime's equivalent), then
-restart the client:
+### 1a. MCP with account sign-in (OAuth)
+
+Point the client at the server with **no headers at all**:
+
+```json
+{
+  "mcpServers": {
+    "reputation-court-search": {
+      "url": "https://api.reputation.ru/mcp"
+    }
+  }
+}
+```
+
+On the first call the client receives `401` with a `WWW-Authenticate` header naming the
+protected-resource metadata, discovers the authorization server (`https://reputation.ru`),
+registers itself, and opens a browser so the user can sign in and approve access. After
+that the client stores and refreshes the token on its own — no key is ever handled by you.
+
+**You cannot complete this flow yourself.** It needs a person in a browser. If you are
+running non-interactively, stop and say so: ask the user to authorize the server in their
+client (Claude Code: `/mcp`; Cursor: MCP settings), then retry. **Never ask the user to
+paste an authorization code, access token, or callback URL to you**, and never try to
+drive the consent page yourself.
+
+If the client can't open a local callback port (headless host, `EADDRINUSE`), use its own
+manual fallback — e.g. OpenClaw's `openclaw mcp login <name>` with the `--code` option. That
+is the client's flow, run by the user; you still never handle the code yourself.
+
+**Do not add `headers.Authorization` to an OAuth config.** Most clients skip the sign-in
+flow entirely when a static `Authorization` header is present and send its value as an API
+key instead — the symptom is an auth error with no sign-in ever offered.
+
+The name the client registers under is what the user sees at
+https://reputation.ru/account/api under "Подключённые AI-ассистенты", where they can
+revoke access.
+
+If the client has no OAuth support for MCP, use an API key instead.
+
+### 1b. MCP with an API key
+
+The user creates a key at https://reputation.ru/account/api ("Создать API ключ") and gives
+it to you. Send it in an `Authorization` header:
 
 ```json
 {
@@ -69,11 +138,16 @@ restart the client:
 }
 ```
 
-This exposes: `search_arbitration_cases`, `search_general_court_cases`,
+Either way the MCP server exposes: `search_arbitration_cases`, `search_general_court_cases`,
 `search_vsrf_documents`, `deep_research_request` / `deep_research_status` /
 `deep_research_result`, `get_general_court_document`, `get_arbitration_document`.
 
-### 2b. Use the REST API (no MCP)
+Billing is the same for both: requests are charged to the user's account per the service
+tariff.
+
+### 2. Use the REST API (no MCP)
+
+Authorize with an API key — account sign-in applies to the MCP endpoint.
 
 Base URL `https://api.reputation.ru`; send `Authorization: <api-key>` on every call.
 A ready client that handles requests, JSON, and the async analysis polling loop is
@@ -88,11 +162,38 @@ python scripts/court_client.py analyze "как суды взыскивают н�
 python scripts/court_client.py doc arbitr <DocId>
 ```
 
-### 3. Verify
+### 3. Verify (self-check, in order)
 
-Run a cheap search — e.g. `search_vsrf_documents("обзор судебной практики")` or
-`court_client.py search vsrf "обзор судебной практики"`. A non-empty result confirms
-the key and connection.
+1. **Reachable** — is the host up and the network clear?
+
+   ```bash
+   curl -sS -o /dev/null -w '%{http_code} %{time_total}s\n' https://api.reputation.ru/
+   # → "301 0.05s" — DNS + host are fine
+   ```
+   If this fails or DNS doesn't resolve, it's a real network/outage issue. If it's fast
+   but a *search* later hangs, that's the AI call being slow (see **Timing**) — wait,
+   don't call it an outage.
+2. **Authorized** — MCP: the `search_*` tools show up in `tools/list`. REST/key: a cheap
+   search returns without `401`/`403`.
+3. **End to end** — run one cheap search with a **≥ 60s** timeout, e.g.
+   `search_vsrf_documents("обзор судебной практики")` or
+   `court_client.py search vsrf "обзор судебной практики"`. A non-empty result confirms
+   auth + connection.
+
+**Symptom → cause:**
+
+| Symptom | Likely cause / fix |
+|---|---|
+| Empty result, ~45s elapsed | timeout, not "nothing found" — raise timeout, retry, simplify |
+| Empty result, fast | genuinely nothing — rephrase in Russian, name the norm |
+| `401` + `WWW-Authenticate: Bearer … resource_metadata=…` | account sign-in needed → **1a** |
+| `401` plain | missing/invalid API key → **1b** |
+| `invalid_token` / `insufficient_scope` | token expired / wrong scope — re-authorize (**1a**) |
+| never offered sign-in | a static `Authorization` header disables OAuth — remove it (**1a**) |
+| `403` | key lacks access, or a proxy is blocking — retry with `NO_PROXY` |
+| `429` | rate limit — back off and retry |
+| `EADDRINUSE` on OAuth callback | local callback port busy — free it, or use the client's `--code` fallback |
+| MCP tools absent | wrong config path / client cached the list — restart the client |
 
 ---
 
@@ -162,7 +263,7 @@ with embedded case links plus the ids of the cases it cites.
    - MCP: `deep_research_result(request_id)`
    - REST: `GET /api/v1/ai-analysis/result?RequestId=<id>` → `{ "Report": "…", "CaseIds": [ … ] }`
 
-Rules: usually `Done` in ~30–120s. If it exceeds a few minutes without `Done`/`Failed`,
+Rules: usually `Done` in ~30–240s. If it exceeds a few minutes without `Done`/`Failed`,
 stop and tell the user rather than polling forever. `Failed` → the job errored; you
 may start a new request. One-shot alternative: `court_client.py analyze "<тема>"` runs
 the whole loop and returns the report. Return the report as-is — **keep its embedded
@@ -214,7 +315,17 @@ the document has **no indexed text** — tell the user; don't fabricate content.
 ## Troubleshooting
 
 - `401` — missing/invalid API key. Check the `Authorization` header / `REPUTATION_API_KEY`.
-- `403` — the key lacks access to that endpoint.
+- `401` **carrying a `WWW-Authenticate: Bearer … resource_metadata=…` header** — the server
+  is asking for account sign-in and the client isn't authorized yet. Have the user sign in
+  (**1a**) or configure an API key (**1b**). Don't retry the call unchanged.
+- `invalid_token` — the access token expired or was revoked. The user must sign in again;
+  you cannot refresh it for them.
+- `insufficient_scope` — the token is missing the `mcp` scope. Re-authorize; if it repeats,
+  fall back to an API key.
+- The client never offers sign-in — a static `Authorization` header is configured, which
+  disables the OAuth flow. Remove the `headers` block (see **1a**).
+- `403` — the key lacks access to that endpoint. If requests go through a proxy, check that
+  it isn't the proxy returning this: try the same call bypassing it (`NO_PROXY`).
 - `429` — rate limit; back off and retry.
 - `400` on document text — missing id param.
 - MCP tools not appearing — re-check the config path and restart the client; some
