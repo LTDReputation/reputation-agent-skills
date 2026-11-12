@@ -1,0 +1,24 @@
+{
+  "name": "contracts",
+  "version": "0.1.0",
+  "description": "Contract review under Russian law (проверка договора) for lawyers: counterparty and signatory checks via reputation.ru get_risk_report, risks for the chosen side, ready clause redlines, protocol of disagreements, norms and court practice — delivered as a PDF conclusion. Reputation MCP, API key via REPUTATION_API_KEY.",
+  "author": {
+    "name": "Reputation",
+    "email": "support@reputation.ru"
+  },
+  "homepage": "https://reputation.ru",
+  "repository": "https://github.com/LTDReputation/reputation-agent-skills",
+  "license": "MIT",
+  "keywords": [
+    "contract-review",
+    "проверка-договора",
+    "due-diligence",
+    "проверка-контрагента",
+    "legal",
+    "russian-law",
+    "reputation",
+    "mcp"
+  ],
+  "skills": "./skills",
+  "mcpServers": "./.mcp.json"
+}

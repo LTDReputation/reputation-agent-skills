@@ -6,7 +6,7 @@
     "url": "https://reputation.ru"
   },
   "metadata": {
-    "description": "Agent skills for the reputation.ru court service — search and analyze Russian court practice (arbitration, general jurisdiction, Supreme Court) via MCP or REST.",
+    "description": "Agent skills for reputation.ru — Russian court practice research and contract review (counterparty checks, risks, redlines, PDF conclusion) via MCP or REST.",
     "version": "0.1.0",
     "pluginRoot": "./"
   },
@@ -15,7 +15,7 @@
       "name": "courts",
       "description": "reputation.ru court practice for coding agents: fast case search, asynchronous deep analysis, and document-text retrieval across Russian arbitration (арбитраж), general-jurisdiction (СОЮ), and Supreme Court (ВС РФ) cases — powered by the reputation MCP server with a REST fallback.",
       "version": "0.1.0",
-      "source": "./",
+      "source": "./plugins/courts",
       "author": {
         "name": "Reputation",
         "email": "support@reputation.ru"
@@ -40,6 +40,35 @@
         "research",
         "courts",
         "documents",
+        "mcp"
+      ]
+    },
+    {
+      "name": "contracts",
+      "description": "Contract review under Russian law (проверка договора) for lawyers: counterparty and signatory checks via reputation.ru get_risk_report, risks for the chosen side, clause redlines, protocol of disagreements, norms and court practice, PDF conclusion. Reputation MCP, API key via REPUTATION_API_KEY.",
+      "version": "0.1.0",
+      "source": "./plugins/contracts",
+      "author": {
+        "name": "Reputation",
+        "email": "support@reputation.ru"
+      },
+      "homepage": "https://reputation.ru",
+      "repository": "https://github.com/LTDReputation/reputation-agent-skills",
+      "license": "MIT",
+      "keywords": [
+        "contract-review",
+        "проверка-договора",
+        "проверка-контрагента",
+        "legal",
+        "russian-law",
+        "reputation",
+        "mcp"
+      ],
+      "category": "External integrations",
+      "tags": [
+        "legal",
+        "contracts",
+        "due-diligence",
         "mcp"
       ]
     }

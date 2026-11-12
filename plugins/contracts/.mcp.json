@@ -1,0 +1,18 @@
+{
+  "mcpServers": {
+    "reputation-company": {
+      "type": "http",
+      "url": "https://api-staging.reputation.ru/mcp/companies",
+      "headers": {
+        "Authorization": "${REPUTATION_API_KEY}"
+      }
+    },
+    "reputation-ai-search": {
+      "type": "http",
+      "url": "https://api-staging.reputation.ru/mcp",
+      "headers": {
+        "Authorization": "${REPUTATION_API_KEY}"
+      }
+    }
+  }
+}

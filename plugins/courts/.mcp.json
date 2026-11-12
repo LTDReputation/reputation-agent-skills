@@ -1,6 +1,7 @@
 {
   "mcpServers": {
     "reputation-court-search": {
+      "type": "http",
       "url": "https://api.reputation.ru/mcp",
       "headers": {
         "Authorization": "${REPUTATION_API_KEY}"

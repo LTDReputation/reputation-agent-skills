@@ -1,0 +1,42 @@
+{
+  "name": "contracts",
+  "version": "0.1.0",
+  "description": "Contract review under Russian law for lawyers: counterparty and signatory checks via reputation.ru, risks for the chosen side, clause redlines, protocol of disagreements, norms and court practice, PDF conclusion.",
+  "author": {
+    "name": "Reputation",
+    "email": "support@reputation.ru",
+    "url": "https://reputation.ru"
+  },
+  "homepage": "https://reputation.ru",
+  "repository": "https://github.com/LTDReputation/reputation-agent-skills",
+  "license": "MIT",
+  "keywords": [
+    "contract-review",
+    "проверка-договора",
+    "проверка-контрагента",
+    "legal",
+    "russian-law",
+    "reputation",
+    "mcp"
+  ],
+  "skills": "./skills/",
+  "mcpServers": "./.mcp.json",
+  "interface": {
+    "displayName": "Reputation Contracts",
+    "shortDescription": "Review contracts under Russian law with counterparty checks and a PDF conclusion",
+    "longDescription": "A lawyer's assistant for contract review under Russian law, powered by reputation.ru. Checks the counterparty (risk report, EGRUL card, courts, debts, registries) and the signatory's authority, finds risks for the side you represent, drafts ready-to-insert clause wording and a protocol of disagreements, verifies norms and court practice, and renders the conclusion to PDF (and editable DOCX) with a bundled zero-dependency script.",
+    "developerName": "Reputation",
+    "category": "Productivity",
+    "capabilities": [
+      "Read",
+      "Write"
+    ],
+    "websiteURL": "https://reputation.ru",
+    "defaultPrompt": [
+      "Проверь договор поставки, мы — покупатель",
+      "Экспресс-проверка договора подряда со стороны заказчика",
+      "Сравни версии договора и оцени правки контрагента",
+      "Подготовь протокол разногласий к договору аренды, мы — арендатор"
+    ]
+  }
+}
